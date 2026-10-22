@@ -1,0 +1,19 @@
+{
+  "Group": "Local",
+  "Name": "PickUpChests",
+  "Version": "1.0.0",
+  "Description": "Crouch and right-click to pick up chests, with filled icons and contents previews.",
+  "Authors": [
+    { "Name": "PickUpChests contributors" }
+  ],
+  "Main": "dev.pickupchests.PickUpChestsPlugin",
+  "ServerVersion": "=0.7.3",
+  "Dependencies": {
+    "Hytale:BlockModule": "*",
+    "Hytale:EntityModule": "*",
+    "Hytale:InteractionModule": "*"
+  },
+  "OptionalDependencies": {},
+  "DisabledByDefault": false,
+  "IncludesAssetPack": true
+}

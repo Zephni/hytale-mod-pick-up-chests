@@ -1,0 +1,14 @@
+{
+  "Group": "Local",
+  "Name": "PickUpChests",
+  "Version": "1.0.0",
+  "Main": "dev.pickupchests.ChestPickupTest",
+  "ServerVersion": "=0.7.3",
+  "Dependencies": {
+    "Hytale:BlockModule": "*",
+    "Hytale:EntityModule": "*",
+    "Hytale:InteractionModule": "*"
+  },
+  "DisabledByDefault": false,
+  "IncludesAssetPack": true
+}

@@ -1,0 +1,67 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: CenterMiddle;
+  Background: #000000(0.5);
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 660, Height: 480);
+
+    #Title {
+      $C.@Title { @Text = "Pick Up Chests"; }
+    }
+
+    #Content {
+      Padding: (Full: 24);
+
+      Label {
+        Text: "Pickup mode";
+        Anchor: (Height: 28);
+        Style: (FontSize: 20, RenderBold: true);
+      }
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 48);
+        $C.@SecondaryTextButton #Inventory {
+          @Text = "Inventory";
+          @Anchor = Anchor(Width: 280, Right: 12);
+        }
+        $C.@SecondaryTextButton #Carry {
+          @Text = "Carry in hands";
+          @Anchor = Anchor(Width: 280);
+        }
+      }
+      Label {
+        Text: "Carry is the default: lift one chest, then right-click to place it. Inventory mode allows multiple chest items.";
+        Anchor: (Height: 44, Bottom: 16);
+        Style: (FontSize: 16, Wrap: true, TextColor: #a5b4c4);
+      }
+      Label {
+        Text: "Pickup action";
+        Anchor: (Height: 28);
+        Style: (FontSize: 20, RenderBold: true);
+      }
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 48);
+        $C.@SecondaryTextButton #Interact {
+          @Text = "Crouch + Interact";
+          @Anchor = Anchor(Width: 280, Right: 12);
+        }
+        $C.@SecondaryTextButton #Secondary {
+          @Text = "Crouch + Secondary";
+          @Anchor = Anchor(Width: 280);
+        }
+      }
+      Label {
+        Text: "Default: Ctrl + F to lift. Release crouch, then Secondary (right-click) to place. Change keys in Controls. Standing + Interact opens chests when your hands are free.";
+        Anchor: (Height: 64, Bottom: 16);
+        Style: (FontSize: 16, Wrap: true, TextColor: #a5b4c4);
+      }
+      $C.@TextButton #Close {
+        @Text = "Done";
+        @Anchor = Anchor(Width: 180);
+      }
+    }
+  }
+}

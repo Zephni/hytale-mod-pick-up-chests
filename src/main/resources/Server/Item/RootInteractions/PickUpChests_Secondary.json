@@ -1,0 +1,11 @@
+{
+  "RequireNewClick": true,
+  "Cooldown": {
+    "Cooldown": 0.35
+  },
+  "Interactions": [
+    {
+      "Type": "Simple"
+    }
+  ]
+}

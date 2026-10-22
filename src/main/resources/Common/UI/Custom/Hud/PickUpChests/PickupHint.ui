@@ -1,0 +1,19 @@
+Group {
+  LayoutMode: CenterMiddle;
+
+  Group {
+    Anchor: (Width: 600, Height: 200);
+
+    Label #PickupHint {
+      Anchor: (Top: 180, Height: 24);
+      Visible: true;
+      Text: "Crouch + Interact to carry chest";
+      Style: (
+        FontSize: 16,
+        Alignment: Center,
+        VerticalAlignment: Center,
+        OutlineColor: #000000(0.8)
+      );
+    }
+  }
+}
