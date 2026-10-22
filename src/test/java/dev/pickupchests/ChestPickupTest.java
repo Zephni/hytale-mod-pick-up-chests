@@ -5,6 +5,7 @@ import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetRegistry;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockPlacementSettings;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.item.config.metadata.ItemDisplayMetadata;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
@@ -74,6 +75,9 @@ public final class ChestPickupTest extends JavaPlugin {
                 .getAsset(UnarmedInteractions.DEFAULT_UNARMED_ID).getInteractions());
         ChestPickupInput.register();
         assertNativeAssets(nativeInteractions, nativeRoots, nativeBlocks);
+        ChestCarrySystem.registerPreviews();
+        assertNativeAssets(nativeInteractions, nativeRoots, nativeBlocks);
+        assertChestPreviews(nativeBlocks);
         var bindings = UnarmedInteractions.getAssetMap()
                 .getAsset(UnarmedInteractions.DEFAULT_UNARMED_ID).getInteractions();
         for (var entry : originalBindings.entrySet()) {
@@ -231,7 +235,8 @@ public final class ChestPickupTest extends JavaPlugin {
         ChestBreakTest.run();
         assert roundTrips >= 20 : "Expected at least 20 chest block variants, got " + roundTrips;
         String result = "PASS: native small/large chest break drops, hotbar/storage pickup change notifications, "
-                + "carry-by-default settings, native carry placement controls, quiet pickup flags, "
+                + "carry-by-default settings, native carry placement controls, always-visible chest previews, "
+                + "quiet pickup flags, "
                 + "crouched repeat-pickup and wrong-action guards, configurable crouch + Interact/Secondary, "
                 + "queued remote crouch/release input, click targets and five-block range, "
                 + "saved personal settings, carry pickup guard, "
@@ -280,6 +285,32 @@ public final class ChestPickupTest extends JavaPlugin {
                         : "Native container changed: " + entry.getKey();
             }
         }
+    }
+
+    private static void assertChestPreviews(java.util.Map<String, BlockType> originals) {
+        int checked = 0;
+        var defaults = BlockPlacementSettings.CODEC.decode(new BsonDocument(), new ExtraInfo());
+        for (var entry : originals.entrySet()) {
+            var current = BlockType.getAssetMap().getAsset(entry.getKey());
+            var originalPlacement = entry.getValue().getPlacementSettings();
+            var currentPlacement = current.getPlacementSettings();
+            if (ChestPickupSystem.isPickupChest(entry.getValue())) {
+                assert currentPlacement != null : "Missing chest placement settings: " + entry.getKey();
+                assert current.toPacket().placementSettings.previewVisibility
+                        == com.hypixel.hytale.protocol.BlockPreviewVisibility.AlwaysVisible : entry.getKey();
+                var before = BlockPlacementSettings.CODEC.encode(
+                        originalPlacement == null ? defaults : originalPlacement, new ExtraInfo()).asDocument();
+                var after = BlockPlacementSettings.CODEC.encode(currentPlacement, new ExtraInfo()).asDocument();
+                before.remove("BlockPreviewVisibility");
+                after.remove("BlockPreviewVisibility");
+                assert before.equals(after) : "Chest placement rules changed: " + entry.getKey();
+                checked++;
+            } else {
+                assert currentPlacement == originalPlacement
+                        : "Unrelated block preview changed: " + entry.getKey();
+            }
+        }
+        assert checked >= 20 : "Expected chest variants and states, got " + checked;
     }
 
     private static void testUiEscapes() {

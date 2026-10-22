@@ -5,6 +5,9 @@ closed chest** to pick it up, keeping its contents. The default controls are
 **CTRL + F**. By default you carry the intact chest in your hands, with its
 original appearance and contents. Release crouch, aim at a valid placement
 location and use **Secondary / right-click** to put it down before lifting another.
+Supported chests explicitly enable Hytale's placement preview rather than using
+its conditional default visibility. This applies to both carried chests and
+chest items; other blocks and the normal placement restrictions are unchanged.
 Pickup does not play block-shattering particles or breaking sounds.
 **F / Interact while not carrying a chest opens
 chests**. Crouching + Interact now picks them up instead.

@@ -12,9 +12,11 @@ import com.hypixel.hytale.component.dependency.SystemDependency;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.codec.ExtraInfo;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockPlacementSettings;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.event.events.ecs.InteractivelyPickupItemEvent;
 import com.hypixel.hytale.server.core.event.events.ecs.DropItemEvent;
@@ -31,6 +33,7 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
+import org.bson.BsonDocument;
 
 final class ChestCarrySystem extends EntityTickingSystem<EntityStore> {
     static final String PLACE_ROOT = "Root_Carry_Place_Block";
@@ -48,6 +51,36 @@ final class ChestCarrySystem extends EntityTickingSystem<EntityStore> {
         var result = Item.getAssetStore().loadAssets("Local:PickUpChests", items);
         if (result.hasFailed()) {
             throw new IllegalStateException("Could not register chest carry controls: " + result.getFailedToLoadKeys());
+        }
+    }
+
+    static void registerPreviews() {
+        // Item loading regenerates block states, so apply this after registering all item variants.
+        var blocks = new ArrayList<BlockType>();
+        for (var block : BlockType.getAssetMap().getAssetMap().values()) {
+            if (ChestPickupSystem.isPickupChest(block)) {
+                blocks.add(new PreviewBlock(block));
+            }
+        }
+        if (blocks.isEmpty()) {
+            throw new IllegalStateException("No chest blocks were loaded");
+        }
+        var blockResult = BlockType.getAssetStore().loadAssets("Local:PickUpChests", blocks);
+        if (blockResult.hasFailed()) {
+            throw new IllegalStateException("Could not register chest placement previews: "
+                    + blockResult.getFailedToLoadKeys());
+        }
+    }
+
+    private static final class PreviewBlock extends BlockType {
+        PreviewBlock(BlockType original) {
+            super(original);
+            var settings = original.getPlacementSettings();
+            var encoded = settings == null ? new BsonDocument()
+                    : BlockPlacementSettings.CODEC.encode(settings, new ExtraInfo()).asDocument();
+            encoded.put("BlockPreviewVisibility", BlockPlacementSettings.BlockPreviewVisibility.CODEC.encode(
+                    BlockPlacementSettings.BlockPreviewVisibility.ALWAYS_VISIBLE, new ExtraInfo()));
+            placementSettings = BlockPlacementSettings.CODEC.decode(encoded, new ExtraInfo());
         }
     }
 

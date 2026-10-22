@@ -26,5 +26,6 @@ public final class PickUpChestsPlugin extends JavaPlugin {
         ChestCarrySystem.registerItems();
         FilledChestItems.register();
         ChestPickupInput.register();
+        ChestCarrySystem.registerPreviews();
     }
 }
