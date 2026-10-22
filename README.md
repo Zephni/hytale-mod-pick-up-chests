@@ -201,6 +201,12 @@ rejection without stack merging, unlocking after carrying, and preservation of
 existing inventory filters. Results and server output are in `build\test-server`.
 The test JAR is **not** the mod to install.
 
+Regression tests also break empty and filled small/large crude chests in a
+disposable world and check vanilla chest drops and content quantities. Inventory
+guard tests verify that collecting and merging loot after putting a chest down
+notifies the underlying hotbar/storage containers, so client inventory updates
+are not lost behind a combined-inventory wrapper.
+
 These are headless API/persistence tests, not an automated player/client test.
 Before using a valuable save, manually verify:
 

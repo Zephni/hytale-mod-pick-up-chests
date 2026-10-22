@@ -21,7 +21,6 @@ import com.hypixel.hytale.server.core.event.events.ecs.DropItemEvent;
 import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer;
-import com.hypixel.hytale.server.core.inventory.container.DelegateItemContainer;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.entity.player.PlayerItemEntityPickupSystem;
 import com.hypixel.hytale.server.core.modules.interaction.components.CarriedBlock;
@@ -113,15 +112,10 @@ final class ChestCarrySystem extends EntityTickingSystem<EntityStore> {
 
     // Guard the transient combined views, leaving real inventories, filters and saved data untouched.
     static final class GuardedInventory extends CombinedItemContainer {
-        GuardedInventory(ItemContainer original, BooleanSupplier blocked) {
-            super(new PickupGuard(original, blocked));
-        }
-    }
-
-    private static final class PickupGuard extends DelegateItemContainer<ItemContainer> {
         private final BooleanSupplier blocked;
 
-        PickupGuard(ItemContainer original, BooleanSupplier blocked) {
+        GuardedInventory(ItemContainer original, BooleanSupplier blocked) {
+            // Combined views forward updates recursively; a delegate around one stops that propagation.
             super(original);
             this.blocked = blocked;
         }

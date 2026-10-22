@@ -4,6 +4,7 @@ import com.hypixel.hytale.codec.ExtraInfo;
 import com.hypixel.hytale.protocol.InteractionType;
 import com.hypixel.hytale.server.core.asset.common.CommonAssetRegistry;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockGathering;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.item.config.metadata.ItemDisplayMetadata;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
@@ -13,6 +14,7 @@ import com.hypixel.hytale.server.core.inventory.container.filter.SlotFilter;
 import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.UnarmedInteractions;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.config.RootInteraction;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import com.hypixel.hytale.server.core.modules.interaction.components.CarriedBlock;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -44,8 +46,12 @@ public final class ChestPickupTest extends JavaPlugin {
 
     @Override
     protected void start() {
+        var nativeInteractions = java.util.Map.copyOf(Interaction.getAssetMap().getAssetMap());
+        var nativeRoots = java.util.Map.copyOf(RootInteraction.getAssetMap().getAssetMap());
+        var nativeBlocks = java.util.Map.copyOf(BlockType.getAssetMap().getAssetMap());
         var originalChest = Item.getAssetMap().getAsset("Furniture_Crude_Chest_Small");
         ChestCarrySystem.registerItems();
+        assertNativeAssets(nativeInteractions, nativeRoots, nativeBlocks);
         var carryChest = Item.getAssetMap().getAsset(originalChest.getId());
         assert carryChest.getInteractions().equals(originalChest.getInteractions());
         assert carryChest.getIcon().equals(originalChest.getIcon());
@@ -63,9 +69,11 @@ public final class ChestPickupTest extends JavaPlugin {
         assert (ChestPickupSystem.PICKUP_BLOCK_FLAGS
                 & com.hypixel.hytale.server.core.universe.world.SetBlockSettings.NO_SEND_AUDIO) != 0;
         FilledChestItems.register();
+        assertNativeAssets(nativeInteractions, nativeRoots, nativeBlocks);
         var originalBindings = java.util.Map.copyOf(UnarmedInteractions.getAssetMap()
                 .getAsset(UnarmedInteractions.DEFAULT_UNARMED_ID).getInteractions());
         ChestPickupInput.register();
+        assertNativeAssets(nativeInteractions, nativeRoots, nativeBlocks);
         var bindings = UnarmedInteractions.getAssetMap()
                 .getAsset(UnarmedInteractions.DEFAULT_UNARMED_ID).getInteractions();
         for (var entry : originalBindings.entrySet()) {
@@ -219,8 +227,10 @@ public final class ChestPickupTest extends JavaPlugin {
         }
         testPreviewLimit();
         testLegacyInventory();
+        ChestBreakTest.run();
         assert roundTrips >= 20 : "Expected at least 20 chest block variants, got " + roundTrips;
-        String result = "PASS: carry-by-default settings, native carry placement controls, quiet pickup flags, "
+        String result = "PASS: native small/large chest break drops, hotbar/storage pickup change notifications, "
+                + "carry-by-default settings, native carry placement controls, quiet pickup flags, "
                 + "crouched repeat-pickup and wrong-action guards, configurable crouch + Interact/Secondary, "
                 + "saved personal settings, carry pickup guard, "
                 + "preserved controls, full inventory, filled icon, "
@@ -232,6 +242,42 @@ public final class ChestPickupTest extends JavaPlugin {
             throw new UncheckedIOException(error);
         }
         getLogger().atInfo().log(result);
+    }
+
+    private static void assertNativeAssets(java.util.Map<String, Interaction> interactions,
+            java.util.Map<String, RootInteraction> roots, java.util.Map<String, BlockType> blocks) {
+        for (var entry : interactions.entrySet()) {
+            assert Interaction.getAssetMap().getAsset(entry.getKey()) == entry.getValue()
+                    : "Native interaction changed: " + entry.getKey();
+        }
+        for (var entry : roots.entrySet()) {
+            assert RootInteraction.getAssetMap().getAsset(entry.getKey()) == entry.getValue()
+                    : "Native root changed: " + entry.getKey();
+        }
+        for (var entry : blocks.entrySet()) {
+            var current = BlockType.getAssetMap().getAsset(entry.getKey());
+            assert current != null : "Native block removed: " + entry.getKey();
+            assert current.getItem() == entry.getValue().getItem()
+                    : "Native block item changed: " + entry.getKey();
+            var originalGathering = entry.getValue().getGathering();
+            var currentGathering = current.getGathering();
+            assert (originalGathering == null) == (currentGathering == null)
+                    : "Native gathering removed: " + entry.getKey();
+            if (originalGathering != null) {
+                var before = BlockGathering.CODEC.encode(originalGathering, new ExtraInfo());
+                var after = BlockGathering.CODEC.encode(currentGathering, new ExtraInfo());
+                assert before.equals(after)
+                        : "Native gathering changed: " + entry.getKey() + "\nBefore: " + before + "\nAfter: " + after;
+            }
+            var originalHolder = entry.getValue().getBlockEntity();
+            var currentHolder = current.getBlockEntity();
+            assert (originalHolder == null) == (currentHolder == null)
+                    : "Native container removed: " + entry.getKey();
+            if (originalHolder != null) {
+                assert ChunkStore.REGISTRY.serialize(originalHolder).equals(ChunkStore.REGISTRY.serialize(currentHolder))
+                        : "Native container changed: " + entry.getKey();
+            }
+        }
     }
 
     private static void testUiEscapes() {
@@ -327,6 +373,44 @@ public final class ChestPickupTest extends JavaPlugin {
         var restored = SimpleItemContainer.CODEC.decode(saved, new ExtraInfo());
         assert restored.getItemStack((short) 0).equals(item);
         assert restored.canAddItemStackToSlot((short) 1, item, true, true);
+        testCarryInventoryUpdates();
+    }
+
+    private static void testCarryInventoryUpdates() {
+        var hotbar = new SimpleItemContainer((short) 1);
+        var storage = new SimpleItemContainer((short) 2);
+        var hotbarUpdates = new java.util.concurrent.atomic.AtomicInteger();
+        var storageUpdates = new java.util.concurrent.atomic.AtomicInteger();
+        hotbar.registerChangeEvent(event -> hotbarUpdates.incrementAndGet());
+        storage.registerChangeEvent(event -> storageUpdates.incrementAndGet());
+        var nativeInventory = new com.hypixel.hytale.server.core.inventory.container.CombinedItemContainer(
+                new com.hypixel.hytale.server.core.inventory.container.FetchedItemContainer(() -> hotbar),
+                new com.hypixel.hytale.server.core.inventory.container.FetchedItemContainer(() -> storage));
+        var carrying = new java.util.concurrent.atomic.AtomicBoolean(true);
+        var guarded = new ChestCarrySystem.GuardedInventory(nativeInventory, carrying::get);
+        var item = new ItemStack("Furniture_Crude_Chest_Small", 1);
+        assert guarded.addItemStack(item).getRemainder().equals(item);
+        assert hotbarUpdates.get() == 0;
+        assert storageUpdates.get() == 0;
+        carrying.set(false);
+        assert ItemStack.isEmpty(guarded.addItemStack(item).getRemainder());
+        assert item.equals(hotbar.getItemStack((short) 0));
+        assert hotbarUpdates.get() > 0 : "Pickup must notify the real hotbar for client sync and saving";
+        var payload = new ItemStack("Wood_Softwood_Trunk", 7);
+        assert ItemStack.isEmpty(guarded.addItemStack(payload).getRemainder());
+        assert payload.equals(storage.getItemStack((short) 0));
+        assert storageUpdates.get() > 0 : "Pickup must notify the real storage for client sync and saving";
+        int beforeMerge = storageUpdates.get();
+        assert ItemStack.isEmpty(guarded.addItemStack(payload).getRemainder());
+        assert storage.getItemStack((short) 0).getQuantity() == 14;
+        assert storageUpdates.get() > beforeMerge : "Merged loot must also update the client";
+        int beforeRemove = hotbarUpdates.get();
+        assert guarded.removeItemStackFromSlot((short) 0, item, 1).succeeded();
+        assert ItemStack.isEmpty(hotbar.getItemStack((short) 0));
+        assert hotbarUpdates.get() > beforeRemove : "Removing an item must update the client";
+        var saved = SimpleItemContainer.CODEC.encode(storage, new ExtraInfo());
+        var restored = SimpleItemContainer.CODEC.decode(saved, new ExtraInfo());
+        assert restored.getItemStack((short) 0).getQuantity() == 14;
     }
 
     private static void testPreviewLimit() {
