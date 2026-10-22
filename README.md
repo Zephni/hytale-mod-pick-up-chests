@@ -1,5 +1,7 @@
 # Pick Up Chests - Hytale 0.7.3
 
+A mod by **MugHeadStudios** (`MugHeadStudios:PickUpChests`).
+
 A server-side Java plugin with a small asset pack: **crouch and interact with a
 closed chest** to pick it up, keeping its contents. The default controls are
 **CTRL + F**. By default you carry the intact chest in your hands, with its
@@ -118,7 +120,11 @@ You still need to enable the mod in your world's mod list.
 
 Stop the server, back up its universe, and put the production JAR in the
 server's `mods` directory (relative to the server's working directory). Restart
-the server. Its log should report `Enabled plugin Local:PickUpChests`.
+the server. Its log should report `Enabled plugin MugHeadStudios:PickUpChests`.
+
+This replaces the development plugin identity `Local:PickUpChests`. When
+upgrading a world from a development build, check its mod list and enable
+the MugHeadStudios version if needed.
 
 The server must run Hytale 0.7.3 with Java 25. Players do not need to install a
 separate client plugin. See the official

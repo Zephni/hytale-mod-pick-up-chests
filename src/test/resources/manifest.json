@@ -1,5 +1,5 @@
 {
-  "Group": "Local",
+  "Group": "MugHeadStudios",
   "Name": "PickUpChests",
   "Version": "1.0.0",
   "Main": "dev.pickupchests.ChestPickupTest",

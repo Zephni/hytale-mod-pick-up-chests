@@ -48,7 +48,7 @@ final class ChestCarrySystem extends EntityTickingSystem<EntityStore> {
         if (items.isEmpty()) {
             throw new IllegalStateException("No chest items were loaded");
         }
-        var result = Item.getAssetStore().loadAssets("Local:PickUpChests", items);
+        var result = Item.getAssetStore().loadAssets("MugHeadStudios:PickUpChests", items);
         if (result.hasFailed()) {
             throw new IllegalStateException("Could not register chest carry controls: " + result.getFailedToLoadKeys());
         }
@@ -65,7 +65,7 @@ final class ChestCarrySystem extends EntityTickingSystem<EntityStore> {
         if (blocks.isEmpty()) {
             throw new IllegalStateException("No chest blocks were loaded");
         }
-        var blockResult = BlockType.getAssetStore().loadAssets("Local:PickUpChests", blocks);
+        var blockResult = BlockType.getAssetStore().loadAssets("MugHeadStudios:PickUpChests", blocks);
         if (blockResult.hasFailed()) {
             throw new IllegalStateException("Could not register chest placement previews: "
                     + blockResult.getFailedToLoadKeys());

@@ -1,10 +1,10 @@
 {
-  "Group": "Local",
+  "Group": "MugHeadStudios",
   "Name": "PickUpChests",
   "Version": "1.0.0",
   "Description": "Crouch and right-click to pick up chests, with filled icons and contents previews.",
   "Authors": [
-    { "Name": "PickUpChests contributors" }
+    { "Name": "MugHeadStudios" }
   ],
   "Main": "dev.pickupchests.PickUpChestsPlugin",
   "ServerVersion": "=0.7.3",

@@ -44,7 +44,7 @@ final class ChestPickupInput extends UnarmedInteractions {
             return;
         }
         var result = AssetRegistry.getAssetStore(UnarmedInteractions.class)
-                .loadAssets("Local:PickUpChests", List.of(new ChestPickupInput(unarmed)));
+                .loadAssets("MugHeadStudios:PickUpChests", List.of(new ChestPickupInput(unarmed)));
         if (result.hasFailed()) {
             throw new IllegalStateException("Could not register empty-hand pickup actions: " + result.getFailedToLoadKeys());
         }

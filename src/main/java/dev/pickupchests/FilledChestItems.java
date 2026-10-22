@@ -65,7 +65,7 @@ final class FilledChestItems {
         if (variants.isEmpty()) {
             throw new IllegalStateException("No chest items were loaded");
         }
-        var result = Item.getAssetStore().loadAssets("Local:PickUpChests", variants);
+        var result = Item.getAssetStore().loadAssets("MugHeadStudios:PickUpChests", variants);
         if (result.hasFailed()) {
             throw new IllegalStateException("Could not register filled chest items: " + result.getFailedToLoadKeys());
         }
