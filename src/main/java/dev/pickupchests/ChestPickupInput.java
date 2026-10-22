@@ -2,6 +2,8 @@ package dev.pickupchests;
 
 import com.hypixel.hytale.assetstore.AssetRegistry;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
+import com.hypixel.hytale.server.core.modules.entity.player.PlayerInput;
 import com.hypixel.hytale.server.core.modules.interaction.interaction.UnarmedInteractions;
 import java.util.EnumMap;
 import java.util.List;
@@ -17,6 +19,19 @@ final class ChestPickupInput extends UnarmedInteractions {
         bindings.putIfAbsent(InteractionType.Secondary, ROOT);
         bindings.putIfAbsent(InteractionType.Use, ROOT);
         interactions = Map.copyOf(bindings);
+    }
+
+    static boolean isCrouching(MovementStatesComponent movement, PlayerInput input) {
+        if (input != null) {
+            // Interaction packets can be consumed before queued movement is applied this tick.
+            var updates = input.getMovementUpdateQueue();
+            for (int index = updates.size() - 1; index >= 0; index--) {
+                if (updates.get(index) instanceof PlayerInput.SetMovementStates update) {
+                    return update.movementStates().crouching;
+                }
+            }
+        }
+        return movement.getMovementStates().crouching;
     }
 
     static void register() {

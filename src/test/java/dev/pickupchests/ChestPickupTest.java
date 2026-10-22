@@ -84,6 +84,7 @@ public final class ChestPickupTest extends JavaPlugin {
         assert RootInteraction.getAssetMap().getAsset(ChestPickupInput.ROOT) != null;
         assert RootInteraction.getAssetMap().getAsset(ChestCarrySystem.PLACE_ROOT) != null;
         testSettings();
+        testRemotePickupInput();
         testCarryPickupGuard();
         testUiEscapes();
         assert CommonAssetRegistry.getByName(FilledChestItems.ICON) != null;
@@ -232,6 +233,7 @@ public final class ChestPickupTest extends JavaPlugin {
         String result = "PASS: native small/large chest break drops, hotbar/storage pickup change notifications, "
                 + "carry-by-default settings, native carry placement controls, quiet pickup flags, "
                 + "crouched repeat-pickup and wrong-action guards, configurable crouch + Interact/Secondary, "
+                + "queued remote crouch/release input, click targets and five-block range, "
                 + "saved personal settings, carry pickup guard, "
                 + "preserved controls, full inventory, filled icon, "
                 + "tooltip preview limits, native block keys and " + roundTrips
@@ -336,6 +338,48 @@ public final class ChestPickupTest extends JavaPlugin {
         cleared.clearItemBlockKey();
         assert !ChestCarrySystem.isCarryingChest(cleared);
         assert !ChestCarrySystem.isCarryingChest(new CarriedBlock("Furniture_Crude_Barrel", null, null));
+    }
+
+    private static void testRemotePickupInput() {
+        var movement = new com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent();
+        var input = new com.hypixel.hytale.server.core.modules.entity.player.PlayerInput();
+        var crouched = new com.hypixel.hytale.protocol.MovementStates();
+        crouched.crouching = true;
+        var standing = new com.hypixel.hytale.protocol.MovementStates();
+        assert !ChestPickupInput.isCrouching(movement, null);
+        assert !ChestPickupInput.isCrouching(movement, input);
+        input.queue(new com.hypixel.hytale.server.core.modules.entity.player.PlayerInput.SetMovementStates(crouched));
+        input.queue(new com.hypixel.hytale.server.core.modules.entity.player.PlayerInput.SetHead(
+                new com.hypixel.hytale.protocol.Direction()));
+        assert ChestPickupInput.isCrouching(movement, input) : "Queued crouch must override stale standing state";
+        for (boolean secondary : new boolean[]{false, true}) {
+            var settings = new ChestPickupSettings(true, secondary);
+            assert ChestPickupSystem.isPickupGesture(settings.interactionType(),
+                    ChestPickupInput.isCrouching(movement, input), settings);
+            assert ChestCarrySystem.blocksInteraction(InteractionType.Secondary, ChestCarrySystem.PLACE_ROOT,
+                    ChestPickupInput.isCrouching(movement, input)) : "Queued crouch must not place a carried chest";
+        }
+        assert !movement.getMovementStates().crouching : "Reading input must not apply movement early";
+        assert input.getMovementUpdateQueue().size() == 2 : "Reading input must not consume native input";
+        movement.setMovementStates(crouched);
+        input.queue(new com.hypixel.hytale.server.core.modules.entity.player.PlayerInput.SetMovementStates(standing));
+        assert !ChestPickupInput.isCrouching(movement, input) : "Latest queued release must win";
+        assert !ChestCarrySystem.blocksInteraction(InteractionType.Secondary, ChestCarrySystem.PLACE_ROOT,
+                ChestPickupInput.isCrouching(movement, input));
+        input.getMovementUpdateQueue().clear();
+        assert ChestPickupInput.isCrouching(movement, input) : "Processed state is used without queued updates";
+        assert ChestPickupInput.isCrouching(movement, null);
+
+        var target = new com.hypixel.hytale.protocol.BlockPosition(8, 64, 8);
+        var eye = new org.joml.Vector3d(8.5, 65, 3);
+        assert ChestPickupSystem.pickupTarget(target, eye).equals(new org.joml.Vector3i(8, 64, 8));
+        assert target.x == 8 && target.y == 64 && target.z == 8 : "Do not mutate the chain's target";
+        assert ChestPickupSystem.pickupTarget(target, new org.joml.Vector3d(8.5, 65, 2.999)) == null;
+        assert ChestPickupSystem.pickupTarget(target, new org.joml.Vector3d(14, 65, 8.5)) != null;
+        assert ChestPickupSystem.pickupTarget(target, new org.joml.Vector3d(14.001, 65, 8.5)) == null;
+        assert ChestPickupSystem.pickupTarget(target, new org.joml.Vector3d(5, 68, 8.5)) != null;
+        assert ChestPickupSystem.pickupTarget(target, new org.joml.Vector3d(5, 69.001, 8.5)) == null;
+        assert ChestPickupSystem.pickupTarget(target, new org.joml.Vector3d(Double.NaN, 65, 8)) == null;
     }
 
     private static void testCarryPickupGuard() {

@@ -11,6 +11,7 @@ import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.protocol.BlockPosition;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
@@ -22,6 +23,7 @@ import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.block.BlockEntity;
 import com.hypixel.hytale.server.core.modules.block.BlockCarriedEvent;
 import com.hypixel.hytale.server.core.modules.block.components.ItemContainerBlock;
+import com.hypixel.hytale.server.core.modules.entity.player.PlayerInput;
 import com.hypixel.hytale.server.core.modules.interaction.BlockHarvestUtils;
 import com.hypixel.hytale.server.core.modules.interaction.event.InteractionChainStartEvent;
 import com.hypixel.hytale.server.core.modules.interaction.components.CarriedBlock;
@@ -35,6 +37,7 @@ import com.hypixel.hytale.server.core.util.FillerBlockUtil;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import java.util.Set;
 import org.joml.Vector3i;
+import org.joml.Vector3dc;
 
 final class ChestPickupSystem extends EntityEventSystem<EntityStore, InteractionChainStartEvent> {
     static final String NO_SPACE_MESSAGE = "Make room in your hotbar or inventory first.";
@@ -67,18 +70,24 @@ final class ChestPickupSystem extends EntityEventSystem<EntityStore, Interaction
         var carried = commands.getComponent(playerRef, CarriedBlock.getComponentType());
         var settings = ChestPickupSettings.get(commands, playerRef);
         var movement = chunk.getComponent(index, MovementStatesComponent.getComponentType());
+        boolean crouching = ChestPickupInput.isCrouching(movement,
+                commands.getComponent(playerRef, PlayerInput.getComponentType()));
         if (carried != null) {
             if (ChestCarrySystem.isCarryingChest(carried)
                     && ChestCarrySystem.blocksInteraction(event.getType(), event.getRootInteractionId(),
-                            movement.getMovementStates().crouching)) {
+                            crouching)) {
                 reject(event, player, "Put down the chest before using your hands or picking up other items.");
             }
             return;
         }
-        if (!isPickupGesture(event.getType(), movement.getMovementStates().crouching, settings)) {
+        if (!isPickupGesture(event.getType(), crouching, settings)) {
             return;
         }
-        var target = TargetUtil.getTargetBlock(playerRef, PICKUP_RANGE, commands);
+        // Target metadata is populated after this event; the click target is already in the chain data.
+        var data = event.getChain().getChainData();
+        var target = data != null && data.blockPosition != null
+                ? pickupTarget(data.blockPosition, TargetUtil.getLook(playerRef, commands).getPosition())
+                : TargetUtil.getTargetBlock(playerRef, PICKUP_RANGE, commands);
         if (target == null) {
             return;
         }
@@ -263,6 +272,14 @@ final class ChestPickupSystem extends EntityEventSystem<EntityStore, Interaction
 
     static boolean isPickupGesture(InteractionType type, boolean crouching, ChestPickupSettings settings) {
         return type == settings.interactionType() && crouching;
+    }
+
+    static Vector3i pickupTarget(BlockPosition target, Vector3dc eye) {
+        double dx = Math.max(Math.max(target.x - eye.x(), eye.x() - (target.x + 1.0)), 0.0);
+        double dy = Math.max(Math.max(target.y - eye.y(), eye.y() - (target.y + 1.0)), 0.0);
+        double dz = Math.max(Math.max(target.z - eye.z(), eye.z() - (target.z + 1.0)), 0.0);
+        return dx * dx + dy * dy + dz * dz <= PICKUP_RANGE * PICKUP_RANGE
+                ? new Vector3i(target.x, target.y, target.z) : null;
     }
 
     static ItemStack pack(String blockId, Holder<ChunkStore> holder) {

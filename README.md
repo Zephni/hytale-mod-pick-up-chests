@@ -8,6 +8,9 @@ location and use **Secondary / right-click** to put it down before lifting anoth
 Pickup does not play block-shattering particles or breaking sounds.
 **F / Interact while not carrying a chest opens
 chests**. Crouching + Interact now picks them up instead.
+Pickup accounts for queued crouch updates and uses the chest selected by the
+interaction, so remote players do not depend on the server's last processed
+crouch state or aim. The five-block pickup limit still applies.
 
 While aiming at a chest within pickup range, a second prompt appears beneath
 the normal open hint: **Crouch + Interact to carry chest** by default, or
