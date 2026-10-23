@@ -1,4 +1,4 @@
-# Pick Up Chests - Hytale 0.7.3
+# Pick Up Chests - Hytale 0.7.4
 
 A mod by **MugHeadStudios** (`MugHeadStudios:PickUpChests`).
 
@@ -94,7 +94,7 @@ do not need to install a separate client mod.
    `%APPDATA%\Hytale\UserData\Mods`.
    Replace the existing JAR when updating. If you installed the temporarily named
    `PickUpChests-1.1.0.jar`, remove that file; do not keep both installed.
-3. Start Hytale **0.7.3**, enable **PickUpChests** in the world's mod list, and
+3. Start Hytale **0.7.4**, enable **PickUpChests** in the world's mod list, and
    load the world. Restart the game if the newly copied mod is not listed.
 4. Crouch and press Interact (default
    CTRL + F) at a closed chest within five blocks. An empty hand works, as does
@@ -126,7 +126,7 @@ This replaces the development plugin identity `Local:PickUpChests`. When
 upgrading a world from a development build, check its mod list and enable
 the MugHeadStudios version if needed.
 
-The server must run Hytale 0.7.3 with Java 25. Players do not need to install a
+The server must run Hytale 0.7.4 with Java 25. Players do not need to install a
 separate client plugin. See the official
 [Hytale Server Manual](https://support.hytale.com/hc/en-us/articles/45326769420827-Hytale-Server-Manual)
 for server setup and general mod installation.
@@ -134,7 +134,7 @@ for server setup and general mod installation.
 ## Build
 
 Requires **JDK 25**, including `java`, `javac` and `jar` on `PATH`, and a legally
-installed Hytale 0.7.3 server JAR. No Maven/Gradle installation or downloads are
+installed Hytale 0.7.4 server JAR. No Maven/Gradle installation or downloads are
 required. The server and game assets are not bundled.
 
 ```powershell
@@ -156,7 +156,7 @@ the directory if needed and replacing the existing `PickUpChests-1.0.0.jar`.
 Close your world before building and reopen it afterward to load the update.
 Copy failures fail the build rather than reporting a successful installation.
 Both the build and plugin manifest
-require exactly 0.7.3; newer versions need revalidation before changing that
+require exactly 0.7.4; newer versions need revalidation before changing that
 constraint.
 
 ## Safety and limitations

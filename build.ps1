@@ -6,7 +6,7 @@ param(
 
 $ErrorActionPreference = "Stop"
 if (-not (Test-Path -LiteralPath $ServerJar -PathType Leaf)) {
-    throw "HytaleServer.jar not found. Supply -ServerJar with the path to your Hytale 0.7.3 server."
+    throw "HytaleServer.jar not found. Supply -ServerJar with the path to your Hytale 0.7.4 server."
 }
 $ServerJar = (Resolve-Path -LiteralPath $ServerJar).Path
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -16,8 +16,8 @@ try {
     if (-not $entry) { throw "The server JAR has no version manifest." }
     $reader = [IO.StreamReader]::new($entry.Open())
     try { $serverManifest = $reader.ReadToEnd() } finally { $reader.Dispose() }
-    if ($serverManifest -notmatch '(?m)^Implementation-Version: 0\.7\.3\r?$') {
-        throw "This mod targets Hytale 0.7.3. Supply a 0.7.3 HytaleServer.jar."
+    if ($serverManifest -notmatch '(?m)^Implementation-Version: 0\.7\.4\r?$') {
+        throw "This mod targets Hytale 0.7.4. Supply a 0.7.4 HytaleServer.jar."
     }
 } finally {
     $archive.Dispose()
