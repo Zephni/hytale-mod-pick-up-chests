@@ -2,7 +2,7 @@
   "Group": "MugHeadStudios",
   "Name": "PickUpChests",
   "Version": "1.0.0",
-  "Description": "Crouch and right-click to pick up chests, with filled icons and contents previews.",
+  "Description": "Crouch and interact to carry chests with their contents. Includes personal controls and inventory contents previews.",
   "Authors": [
     { "Name": "MugHeadStudios" }
   ],

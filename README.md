@@ -2,6 +2,17 @@
 
 A mod by **MugHeadStudios** (`MugHeadStudios:PickUpChests`).
 
+![Pick Up Chests icon](distribution/icon.png)
+
+## Public listing
+
+The [CurseForge submission materials](distribution/curseforge.md) include the
+project description, original gold-chest pickup icon, and
+release checklist. [Pick Up Chests on CurseForge](https://www.curseforge.com/hytale/mods/pick-up-chests)
+version 1.0.0 has been submitted with the author's final approval and is awaiting
+moderation.
+The mod and original artwork are [All Rights Reserved](LICENSE).
+
 A server-side Java plugin with a small asset pack: **crouch and interact with a
 closed chest** to pick it up, keeping its contents. The default controls are
 **CTRL + F**. By default you carry the intact chest in your hands, with its
@@ -31,7 +42,7 @@ the normal open hint is unchanged. While carrying, the prompt instead shows
 **Release crouch; use Secondary to place chest**. The placement hint stays visible
 until you put the chest down.
 
-Supports vanilla furniture chests, including large and stolen Goblin chests.
+Supports vanilla single and double furniture chests (small and large), including stolen Goblin chests.
 Barrels, workbenches and unrelated containers are not affected. No new recipes,
 client patching or external libraries are needed.
 
